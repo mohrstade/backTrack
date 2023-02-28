@@ -8,7 +8,7 @@ This functionality does not exist for Consent Management tools however. If an ev
 
 Trigger groups can cover some use cases and it's worth checking to see if this can cover your use case first: https://support.google.com/tagmanager/answer/9164222?hl=en
 
-Many use cases aren't covered however, for example if a tag is firing multiple times...
+Many use cases aren't covered however, for example if a tag is firing multiple times.
 
 backTrack is a tag template that adds functionality to repush missed events into the queue after consent is provided, so that no events are missed.
 
