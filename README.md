@@ -23,7 +23,9 @@ Steps to implement/configure:
 
 4- Adjust the positive REGEX to match the events that you wish to repush. By default the tag will ignore GTM specific pushes and most major consent tool pushes. It is highly recommended to prevent the tag from repushing consent events, as this could alter the consent status and cause major issues for your tracking!
 
-5- (Optional) If you wish to prevent recursive merge for specific objects, change the setting to 'specific' and add the objects as a comma separated list. For example: ecommerce,products.skus. 
+5- (Optional) If you wish to prevent recursive merge for specific objects, change the setting to 'specific' and add the objects as a comma separated list. For example: ecommerce,products.skus.
+This will push a NULL value for the specific object before any event containing the object.
+If you wish to prevent recursive merge for all complex data types, it is recommended to use the _clear: true parameter in your original dataLayer pushes. This tag will then replicate this in the repush.
 
         -N.B If the object is embedded, you must specify the entire path to the object.
 6- Test that everything behaves as expected.
