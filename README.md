@@ -12,7 +12,8 @@ Many use cases aren't covered however, for example if a tag is firing multiple t
 
 backTrack is a tag template that adds functionality to repush missed events into the queue after consent is provided, so that no events are missed.
 
-Steps to implement/configure:
+Steps to implement/configure:  
+
 1- Create a tag utilising the template. 
 
 2- Set the tag to fire once per page (IMPORTANT). 
