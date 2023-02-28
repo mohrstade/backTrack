@@ -1,5 +1,5 @@
 # backTrack
-repush dataLayer events that occurred before consent loaded.
+Repush dataLayer events that occurred before consent loaded.
 
 Google Tag Manager over-rides the object.push() functionality of the dataLayer array, to create a queue that can be used to process events.
 One of the major benefits of this, is that events triggered before GTM loads will be processed when finally does load.
