@@ -1,6 +1,6 @@
 homepage: "https://mohrstade.com/"
 documentation: ""
 versions:
-  - sha: 9443de8f285556fa86095b4de5eab7d91dd26192
+  - sha: 18e8a78dae8560ecb44a57c94f86e4dbcaaaa4be
     changeNotes: Initial release.
 
