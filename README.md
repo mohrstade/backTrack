@@ -22,7 +22,7 @@ Steps to implement/configure:
 
 <img width="1215" alt="Screenshot 2023-02-28 at 15 09 23" src="https://user-images.githubusercontent.com/125863377/221878439-16792901-e974-454c-818b-6212b0fa579d.png">
 
-4- Adjust the positive REGEX to match the events that you wish to repush. By default the tag will ignore GTM specific pushes and most major consent tool pushes. It is highly recommended to prevent the tag from repushing consent events, as this could alter the consent status and cause major issues for your tracking!
+4- Adjust the positive REGEX to match the events that you wish to repush. The default REGEX will ignore GTM specific pushes and most major consent tool pushes. It is highly recommended to prevent the tag from repushing consent events, as this could alter the consent status and cause major issues for your tracking!
 
 5- (Optional) If you wish to prevent recursive merge for specific objects, change the setting to 'specific' and add the objects as a comma separated list. For example: ecommerce,products.skus.
 This will push a NULL value for the specific object before any event containing the object.
