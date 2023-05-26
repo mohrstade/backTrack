@@ -303,53 +303,10 @@ scenarios:
         {
             "usc_origin": "from local storage",
             "event": "consents_initialized",
-            "Optin": true,
-            "Consent Management-Plattform": true,
-            "ClickDimensions und Newsletter": true,
-            "Zoovu (nur im Pantone Manager)": true,
-            "YouTube": true,
-            "Podigee (nur bei Podcasts)": true,
-            "reCAPTCHA": true,
-            "Akamai": true,
-            "New Relic": true,
-            "Google Analytics": true,
-            "Google Analytics Advertising Feature": true,
-            "rexx Systems GmbH": true,
-            "Social Media Buttons und Inhalte": true,
             "gtm.uniqueEventId": 1
         },
         {
-            "event": "promotionView",
-            "ecommerce": {
-                "promoView": {
-                    "promotions": [
-                        {
-                            "id": "198",
-                            "name": "Homepage Teaser Side Top Banner (Guests) (za_en)",
-                            "creative": "Banner_small_register_en.jpg",
-                            "position": "cms_index_index"
-                        },
-                        {
-                            "id": "200",
-                            "name": "Homepage Teaser Side Bottom Banner (all) (za_en)",
-                            "creative": "HZA_teaser_bottom_right.png",
-                            "position": "cms_index_index"
-                        },
-                        {
-                            "id": "484",
-                            "name": "Homepage Footer Two Column Banners left (za_en)",
-                            "creative": "",
-                            "position": "cms_index_index"
-                        },
-                        {
-                            "id": "486",
-                            "name": "Homepage Footer Two Column Banners right (za_en)",
-                            "creative": "",
-                            "position": "cms_index_index"
-                        }
-                    ]
-                }
-            },
+            "event": "test",
             "gtm.uniqueEventId": 8
         }
     ];
@@ -377,8 +334,6 @@ scenarios:
     let dataLayer = [
         {
             "event": "page_view",
-            "event_type": "automatic",
-            "user_type": "new",
             "gtm.uniqueEventId": 1
         },
         {
@@ -387,37 +342,8 @@ scenarios:
             "gtm.uniqueEventId": 11
         },
         {
-            "0": "set",
-            "1": "developer_id.dMWZhNz",
-            "2": true
-        },
-        {
             "event": "cookie_consent_preferences",
             "gtm.uniqueEventId": 16
-        },
-        {
-            "event": "cookie_consent_statistics",
-            "gtm.uniqueEventId": 20
-        },
-        {
-            "event": "cookie_consent_marketing",
-            "gtm.uniqueEventId": 24
-        },
-        {
-            "0": "consent",
-            "1": "update",
-            "2": {
-                "ad_storage": "granted",
-                "analytics_storage": "granted",
-                "functionality_storage": "granted",
-                "personalization_storage": "granted",
-                "security_storage": "granted"
-            }
-        },
-        {
-            "0": "set",
-            "1": "ads_data_redaction",
-            "2": false
         },
         {
             "event": "cookie_consent_update",
