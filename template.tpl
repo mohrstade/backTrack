@@ -82,8 +82,6 @@ const makeString = require('makeString');
 const setInWindow = require('setInWindow');
 const copyFromDataLayer = require('copyFromDataLayer');
 
-const gtmId = 
-
 log('data =', data);
 
 //Safety net, so that the tag only fires once per page, preventing endless loops
@@ -101,14 +99,14 @@ if (copyFromWindow('repushdataLayer') !== 'run') {
     const ending_point = copyFromDataLayer('gtm.uniqueEventId');
     log({ending_point: ending_point});
     //Only use dataLayer pushes between current event and the first one.
-    log({before: dataLayer});
+    //log({before: dataLayer});
     dataLayer = dataLayer.filter(item => item['gtm.uniqueEventId'] < ending_point);
-  
-  log({after: dataLayer});
+
+    //log({after: dataLayer});
 
     // Filter for events matching the user provided REGEX
     dataLayer = dataLayer.filter(key => key.event.match(data.positive_regex));
-    
+
     //If prevent_recursive_merge is active - convert the provided string into an array
     if (data.prevent_recursive_merge === 'specific') {
         var list = data.list.split(',');
@@ -299,7 +297,7 @@ ___WEB_PERMISSIONS___
 ___TESTS___
 
 scenarios:
-- name: onlyData pushes before consent
+- name: no data pushes before consent
   code: |-
     const dataLayer = [
         {
@@ -368,10 +366,9 @@ scenarios:
     // Call runCode to run the template's code.
     const variableResult = runCode(mockData);
 
-    log('variableResult =', variableResult);
     // Verify that the variable returns a result.
-    assertThat(variableResult).isEqualTo(undefined);
-- name: log data if dataLayer has pushes before consent
+    assertApi('gtmOnSuccess').wasCalled();
+- name: dataLayer has pushes before consent
   code: |-
     mock('copyFromDataLayer', key => {
       return 30;
