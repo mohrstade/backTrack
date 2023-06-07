@@ -1,12 +1,4 @@
-___TERMS_OF_SERVICE___
-
-By creating or modifying this file you agree to Google Tag Manager's Community
-Template Gallery Developer Terms of Service available at
-https://developers.google.com/tag-manager/gallery-tos (or such other URL as
-Google may provide), as modified from time to time.
-
-
-___INFO___
+﻿___INFO___
 
 {
   "type": "TAG",
@@ -88,6 +80,7 @@ const createQueue = require('createQueue');
 const dataLayerPush = createQueue('dataLayer');
 const makeString = require('makeString');
 const setInWindow = require('setInWindow');
+const copyFromDataLayer = require('copyFromDataLayer');
 
 log('data =', data);
 
@@ -96,31 +89,24 @@ if (copyFromWindow('repushdataLayer') !== 'run') {
 
     setInWindow('repushdataLayer', 'run', false);
 
-    //Copy the dataLayer and filter out events without the event key
-    var dataLayer = copyFromWindow('dataLayer').filter(function(key) {
-        return key && key.event;
-    });
+    //Copy the dataLayer and filter out pushes without the event key
+    let dataLayer = copyFromWindow('dataLayer').filter(key => key && key.event);
 
     //Starting at the beginning of the datayer
-    var starting_point = 0;
+    const starting_point = 0;
 
-    //Find the 'end' - the event that triggered this tag - should match the {{Event}} variable, starting from the end to ensure we get the most recent occurence of that event
-    for (let i = dataLayer.length - 1; i >= 0; i--) {
-        if (dataLayer[i].event === data.event) {
-            var ending_point = i;
-            log('found ending point - ' + ending_point);
-            break;
-        }
-    }
+    // Find the id of the current event.
+    const ending_point = copyFromDataLayer('gtm.uniqueEventId');
+    log({ending_point: ending_point});
+    //Only use dataLayer pushes between current event and the first one.
+    //log({before: dataLayer});
+    dataLayer = dataLayer.filter(item => item['gtm.uniqueEventId'] < ending_point);
 
-    //Slice the dataLayer to get the section we want
-    dataLayer = dataLayer.slice(starting_point, ending_point);
+    //log({after: dataLayer});
 
     // Filter for events matching the user provided REGEX
-    dataLayer = dataLayer.filter(function(key) {
-        return key.event.match(data.positive_regex);
-    });
-    
+    dataLayer = dataLayer.filter(key => key.event.match(data.positive_regex));
+
     //If prevent_recursive_merge is active - convert the provided string into an array
     if (data.prevent_recursive_merge === 'specific') {
         var list = data.list.split(',');
@@ -278,13 +264,114 @@ ___WEB_PERMISSIONS___
       "isEditedByUser": true
     },
     "isRequired": true
+  },
+  {
+    "instance": {
+      "key": {
+        "publicId": "read_data_layer",
+        "versionId": "1"
+      },
+      "param": [
+        {
+          "key": "keyPatterns",
+          "value": {
+            "type": 2,
+            "listItem": [
+              {
+                "type": 1,
+                "string": "gtm.uniqueEventId"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "clientAnnotations": {
+      "isEditedByUser": true
+    },
+    "isRequired": true
   }
 ]
 
 
 ___TESTS___
 
-scenarios: []
+scenarios:
+- name: no data pushes before consent
+  code: |-
+    const dataLayer = [
+        {
+            "usc_origin": "from local storage",
+            "event": "consents_initialized",
+            "gtm.uniqueEventId": 1
+        },
+        {
+            "event": "test",
+            "gtm.uniqueEventId": 8
+        }
+    ];
+
+    mock('copyFromWindow', key => {
+      return dataLayer;
+    });
+
+    mock('copyFromDataLayer', key => {
+      return 1;
+    });
+
+
+    // Call runCode to run the template's code.
+    const variableResult = runCode(mockData);
+
+    // Verify that the variable returns a result.
+    assertApi('gtmOnSuccess').wasCalled();
+- name: dataLayer has pushes before consent
+  code: |-
+    mock('copyFromDataLayer', key => {
+      return 30;
+    });
+
+    let dataLayer = [
+        {
+            "event": "page_view",
+            "gtm.uniqueEventId": 1
+        },
+        {
+            "gtm.start": 1685100565459,
+            "event": "gtm.js",
+            "gtm.uniqueEventId": 11
+        },
+        {
+            "event": "cookie_consent_preferences",
+            "gtm.uniqueEventId": 16
+        },
+        {
+            "event": "cookie_consent_update",
+            "gtm.uniqueEventId": 30
+        },
+        {
+            "event": "gtm.dom",
+            "gtm.uniqueEventId": 35
+        },
+        {
+            "event": "gtm.load",
+            "gtm.uniqueEventId": 44
+        }
+    ];
+
+    mock('copyFromWindow', key => {
+      return dataLayer;
+    });
+
+    log(dataLayer);
+
+    // Call runCode to run the template's code.
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('gtmOnSuccess').wasCalled();
+setup: "const log = require('logToConsole');\n\nconst mockData = {\n  positive_regex:\
+  \ \"^(?!gtm|consent|Optanon|OneTrust|cookie_consent).*$\" \n};"
 
 
 ___NOTES___
