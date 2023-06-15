@@ -58,15 +58,6 @@ ___TEMPLATE_PARAMETERS___
       }
     ],
     "simpleValueType": true
-  },
-  {
-    "type": "TEXT",
-    "name": "event",
-    "displayName": "{{Event}}",
-    "simpleValueType": true,
-    "notSetText": "Set this to {{Event}}",
-    "defaultValue": "{{Event}}",
-    "help": "This should be set to the GTM built-in variable {{Event}}"
   }
 ]
 
