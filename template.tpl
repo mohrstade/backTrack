@@ -70,15 +70,14 @@ const copyFromWindow = require('copyFromWindow');
 const createQueue = require('createQueue');
 const dataLayerPush = createQueue('dataLayer');
 const makeString = require('makeString');
-const setInWindow = require('setInWindow');
 const copyFromDataLayer = require('copyFromDataLayer');
 
 log('data =', data);
 
-//Safety net, so that the tag only fires once per page, preventing endless loops
-if (copyFromWindow('repushdataLayer') !== 'run') {
-
-    setInWindow('repushdataLayer', 'run', false);
+//Check for any artifical dataLayer events and abort if any are detected, as this means the tag has already fired
+let pushType = copyFromDataLayer('pushType');
+    
+if (pushType !== 'artificial') {
 
     //Copy the dataLayer and filter out pushes without the event key
     let dataLayer = copyFromWindow('dataLayer').filter(key => key && key.event);
@@ -127,6 +126,8 @@ if (copyFromWindow('repushdataLayer') !== 'run') {
         });
 
     }
+} else {
+  log('backTrack aborted - artificial events already detected');
 }
 // Call data.gtmOnSuccess when the tag is finished.
 data.gtmOnSuccess();
@@ -271,6 +272,10 @@ ___WEB_PERMISSIONS___
               {
                 "type": 1,
                 "string": "gtm.uniqueEventId"
+              },
+              {
+                "type": 1,
+                "string": "pushType"
               }
             ]
           }
