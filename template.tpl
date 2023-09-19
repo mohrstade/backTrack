@@ -327,6 +327,16 @@ scenarios:
       return 30;
     });
 
+    const expectedDataLayerEvent = {event: "page_view",
+                                   pushType : "artificial",
+                                   'gtm.uniqueEventId' : undefined};
+
+    mock("createQueue", function () {
+      return function (event) {
+        assertThat(event).isEqualTo(expectedDataLayerEvent);
+      };
+    });
+
     let dataLayer = [
         {
             "event": "page_view",
