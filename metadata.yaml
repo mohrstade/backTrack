@@ -1,5 +1,5 @@
 homepage: "https://mohrstade.com/"
-documentation: ""
+documentation: "https://github.com/mohrstade/backTrack"
 versions:
   - sha: 18e8a78dae8560ecb44a57c94f86e4dbcaaaa4be
     changeNotes: Initial release.
