@@ -79,6 +79,7 @@ const createQueue = require('createQueue');
 const dataLayerPush = createQueue('dataLayer');
 const makeString = require('makeString');
 const copyFromDataLayer = require('copyFromDataLayer');
+const callLater = require('callLater');
 
 log('data =', data);
 
@@ -130,7 +131,7 @@ if (pushType !== 'artificial') {
             element.pushType = "artificial";
             log('Repeat DataLayer Events Tag - Repushing event: ' + element.event);
             //Repush the event
-            dataLayerPush(element);
+            callLater(()=>dataLayerPush(element));
         });
 
     }
