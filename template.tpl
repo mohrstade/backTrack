@@ -83,10 +83,10 @@ const callLater = require('callLater');
 
 log('data =', data);
 
-//Check for any artifical dataLayer events and abort if any are detected, as this means the tag has already fired
+//Check if backTrack has already fired/is firing by looking for artificial/natural pushType
 let pushType = copyFromDataLayer('pushType');
 
-if (pushType !== 'artificial') {
+if (['artificial', 'natural'].indexOf(pushType) === -1) {
 
     //Copy the dataLayer and filter out pushes without the event key
     let dataLayer = copyFromWindow('dataLayer').filter(key => key && key.event);
@@ -132,6 +132,7 @@ if (pushType !== 'artificial') {
             log('Repeat DataLayer Events Tag - Repushing event: ' + element.event);
             //Repush the event
             callLater(()=>dataLayerPush(element));
+            callLater(()=>dataLayerPush({pushType: 'natural'}));
         });
 
     }
