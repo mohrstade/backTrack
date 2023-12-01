@@ -84,9 +84,9 @@ const callLater = require('callLater');
 log('data =', data);
 
 //Check if backTrack has already fired/is firing by looking for artificial/natural pushType
-let pushType = copyFromDataLayer('pushType');
+let alreadyFired = copyFromDataLayer('backTrack_fired');
 
-if (['artificial', 'natural'].indexOf(pushType) === -1) {
+if (!alreadyFired) {
 
     //Copy the dataLayer and filter out pushes without the event key
     let dataLayer = copyFromWindow('dataLayer').filter(key => key && key.event);
@@ -132,12 +132,15 @@ if (['artificial', 'natural'].indexOf(pushType) === -1) {
             log('Repeat DataLayer Events Tag - Repushing event: ' + element.event);
             //Repush the event
             callLater(()=>dataLayerPush(element));
-            callLater(()=>dataLayerPush({pushType: 'natural'}));
         });
+            callLater(()=>dataLayerPush({
+              backTrack_fired : true,
+              pushType: undefined}));
+        
 
     }
 } else {
-  log('backTrack aborted - artificial events already detected');
+  log('backTrack aborted - tag has already fired');
 }
 // Call data.gtmOnSuccess when the tag is finished.
 data.gtmOnSuccess();
@@ -275,6 +278,13 @@ ___WEB_PERMISSIONS___
       },
       "param": [
         {
+          "key": "allowedKeys",
+          "value": {
+            "type": 1,
+            "string": "specific"
+          }
+        },
+        {
           "key": "keyPatterns",
           "value": {
             "type": 2,
@@ -286,6 +296,10 @@ ___WEB_PERMISSIONS___
               {
                 "type": 1,
                 "string": "pushType"
+              },
+              {
+                "type": 1,
+                "string": "backTrack_fired"
               }
             ]
           }
@@ -393,5 +407,3 @@ setup: "const log = require('logToConsole');\n\nconst mockData = {\n  positive_r
 ___NOTES___
 
 Set firing to once per page
-
-
