@@ -354,10 +354,6 @@ scenarios:
       return 30;
     });
 
-    const expectedDataLayerEvent = {event: "page_view",
-                                   pushType : "artificial",
-                                   'gtm.uniqueEventId' : undefined};
-
     let dataLayer = [
         {
             "event": "page_view",
@@ -418,7 +414,7 @@ scenarios:
     ];
     log("expectedPushedEvents", expectedPushedEvents);
     log("pushedEvents", pushedEvents);
-    //assertThat(pushedEvents).isEqualTo(expectedDataLayerEvent);
+    assertThat(pushedEvents).isEqualTo(expectedPushedEvents);
 
     // Verify that the tag finished successfully.
     assertApi('gtmOnSuccess').wasCalled();
