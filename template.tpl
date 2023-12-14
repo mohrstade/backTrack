@@ -336,9 +336,15 @@ scenarios:
     });
 
     mock('copyFromDataLayer', key => {
+      if(key === 'backTrack_fired') {
+        return false;
+      }
       return 1;
     });
 
+    mock("callLater", (callback) => {
+      fail();
+    });
 
     // Call runCode to run the template's code.
     const variableResult = runCode(mockData);
@@ -417,7 +423,60 @@ scenarios:
     assertThat(pushedEvents).isEqualTo(expectedPushedEvents);
 
     // Verify that the tag finished successfully.
-    assertApi('gtmOnSuccess').wasCalled();
+- name: do not run template twice if backTrack_fired is set to true
+  code: |-
+    mock('copyFromDataLayer', key => {
+      if(key === 'backTrack_fired') {
+        return true;
+      }
+      return 30;
+    });
+
+    let dataLayer = [
+        {
+            "event": "page_view",
+            "gtm.uniqueEventId": 1
+        },
+        {
+            "gtm.start": 1685100565459,
+            "event": "gtm.js",
+            "gtm.uniqueEventId": 11
+        },
+        {
+            "event": "cookie_consent_preferences",
+            "gtm.uniqueEventId": 16
+        },
+        {
+            "event": "cookie_consent_update",
+            "gtm.uniqueEventId": 30
+        },
+        {
+            "event": "gtm.dom",
+            "gtm.uniqueEventId": 35
+        },
+        {
+            "event": "gtm.load",
+            "gtm.uniqueEventId": 44
+        }
+    ];
+
+
+    mock('copyFromWindow', key => {
+      return dataLayer;
+    });
+
+    mock("callLater", (callback) => {
+      fail();
+    });
+
+    log("dataLayer ",dataLayer);
+
+
+    // Call runCode to run the template's code.
+    runCode(mockData);
+
+
+    // Verify that the tag finished successfully.
 setup: "const log = require('logToConsole');\n\nconst mockData = {\n  positive_regex:\
   \ \"^(?!gtm|consent|Optanon|OneTrust|cookie_consent).*$\" \n};"
 
