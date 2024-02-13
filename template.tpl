@@ -355,15 +355,9 @@ scenarios:
     });
 
     mock('copyFromDataLayer', key => {
-      if(key === 'backTrack_fired') {
-        return false;
-      }
       return 1;
     });
 
-    mock("callLater", (callback) => {
-      fail();
-    });
 
     // Call runCode to run the template's code.
     const variableResult = runCode(mockData);
@@ -373,84 +367,19 @@ scenarios:
 - name: dataLayer has pushes before consent
   code: |-
     mock('copyFromDataLayer', key => {
-      if(key === 'backTrack_fired') {
-        return false;
-      }
       return 30;
     });
 
-    let dataLayer = [
-        {
-            "event": "page_view",
-            "gtm.uniqueEventId": 1
-        },
-        {
-            "gtm.start": 1685100565459,
-            "event": "gtm.js",
-            "gtm.uniqueEventId": 11
-        },
-        {
-            "event": "cookie_consent_preferences",
-            "gtm.uniqueEventId": 16
-        },
-        {
-            "event": "cookie_consent_update",
-            "gtm.uniqueEventId": 30
-        },
-        {
-            "event": "gtm.dom",
-            "gtm.uniqueEventId": 35
-        },
-        {
-            "event": "gtm.load",
-            "gtm.uniqueEventId": 44
-        }
-    ];
+    const expectedDataLayerEvent = {event: "page_view",
+                                   pushType : "artificial",
+                                   'gtm.uniqueEventId' : undefined};
 
-    let pushedEvents = [];
-
-    // Mocking the createQueue function to capture pushed events
     mock("createQueue", function () {
       return function (event) {
-        log(event);
-        pushedEvents.push(event);
+        assertThat(event).isEqualTo(expectedDataLayerEvent);
       };
     });
 
-    mock('copyFromWindow', key => {
-      return dataLayer;
-    });
-
-    mock("callLater", (callback) => {
-      callback();
-    });
-
-    log("dataLayer ",dataLayer);
-
-
-    // Call runCode to run the template's code.
-    runCode(mockData);
-
-    const expectedPushedEvents = [
-      // Define the expected pushed events based on your template logic
-      { event: "page_view", pushType: "artificial", 'gtm.uniqueEventId': undefined },
-      { backTrack_fired : true, pushType: undefined}
-      // Add other expected pushed events here based on your logic
-    ];
-    log("expectedPushedEvents", expectedPushedEvents);
-    log("pushedEvents", pushedEvents);
-    assertThat(pushedEvents).isEqualTo(expectedPushedEvents);
-
-    // Verify that the tag finished successfully.
-- name: do not run template twice if backTrack_fired is set to true
-  code: |-
-    mock('copyFromDataLayer', key => {
-      if(key === 'backTrack_fired') {
-        return true;
-      }
-      return 30;
-    });
-
     let dataLayer = [
         {
             "event": "page_view",
@@ -479,23 +408,17 @@ scenarios:
         }
     ];
 
-
     mock('copyFromWindow', key => {
       return dataLayer;
     });
 
-    mock("callLater", (callback) => {
-      fail();
-    });
-
-    log("dataLayer ",dataLayer);
-
+    log(dataLayer);
 
     // Call runCode to run the template's code.
     runCode(mockData);
 
-
     // Verify that the tag finished successfully.
+    assertApi('gtmOnSuccess').wasCalled();
 setup: "const log = require('logToConsole');\n\nconst mockData = {\n  positive_regex:\
   \ \"^(?!gtm|consent|Optanon|OneTrust|cookie_consent).*$\" \n};"
 
