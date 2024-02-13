@@ -73,69 +73,93 @@ ___TEMPLATE_PARAMETERS___
 ___SANDBOXED_JS_FOR_WEB_TEMPLATE___
 
 // Enter your template code here.
-const log = require('logToConsole');
-const copyFromWindow = require('copyFromWindow');
-const createQueue = require('createQueue');
-const dataLayerPush = createQueue('dataLayer');
-const makeString = require('makeString');
-const copyFromDataLayer = require('copyFromDataLayer');
+const log = require("logToConsole");
+const copyFromWindow = require("copyFromWindow");
+const createQueue = require("createQueue");
+const dataLayerPush = createQueue("dataLayer");
+const makeString = require("makeString");
+const copyFromDataLayer = require("copyFromDataLayer");
+const callLater = require("callLater");
 
-log('data =', data);
+log("data =", data);
 
-//Check for any artifical dataLayer events and abort if any are detected, as this means the tag has already fired
-let pushType = copyFromDataLayer('pushType');
+//Check if backTrack has already fired/is firing by looking for artificial/natural pushType
+let alreadyFired = copyFromDataLayer("backTrack_fired");
 
-if (pushType !== 'artificial') {
+if (!alreadyFired) {
+  //Copy the dataLayer and filter out pushes without the event key
+  let dataLayer = copyFromWindow("dataLayer").filter((key) => key && key.event);
 
-    //Copy the dataLayer and filter out pushes without the event key
-    let dataLayer = copyFromWindow('dataLayer').filter(key => key && key.event);
+  //Starting at the beginning of the datayer
+  const starting_point = 0;
 
-    //Starting at the beginning of the datayer
-    const starting_point = 0;
+  // Find the id of the current event.
+  const ending_point = copyFromDataLayer("gtm.uniqueEventId");
+  log({ ending_point: ending_point });
+  //Only use dataLayer pushes between current event and the first one.
+  //log({before: dataLayer});
+  dataLayer = dataLayer.filter(
+    (item) => item["gtm.uniqueEventId"] < ending_point
+  );
 
-    // Find the id of the current event.
-    const ending_point = copyFromDataLayer('gtm.uniqueEventId');
-    log({ending_point: ending_point});
-    //Only use dataLayer pushes between current event and the first one.
-    //log({before: dataLayer});
-    dataLayer = dataLayer.filter(item => item['gtm.uniqueEventId'] < ending_point);
+  //log({after: dataLayer});
 
-    //log({after: dataLayer});
+  // Filter for events matching the user provided REGEX
+  dataLayer = dataLayer.filter((key) => key.event.match(data.positive_regex));
 
-    // Filter for events matching the user provided REGEX
-    dataLayer = dataLayer.filter(key => key.event.match(data.positive_regex));
+  //If prevent_recursive_merge is active - convert the provided string into an array
+  if (data.prevent_recursive_merge === "specific") {
+    var receursive_merge_events = data.list.split(",");
+  }
 
-    //If prevent_recursive_merge is active - convert the provided string into an array
-    if (data.prevent_recursive_merge === 'specific') {
-        var list = data.list.split(',');
-    }
+  const preparePush = function (element) {
+        //Check if the prevent_recursive merge array is present and push nulls if any are found in events
+        if (receursive_merge_events && receursive_merge_events.length > 0) {
+          let objects = receursive_merge_events.filter(
+            (key) => typeof element[key] === "object"
+          );
+          log(objects);
+          let pushobject = {};
+          if (objects.length > 0) {
+            objects.forEach((object) => (pushobject[object] = null));
+            dataLayerPush(pushobject);
+            log(
+              "Preventing recursive merge by pushing null object(s): " +
+                objects +
+                " before event: " +
+                element.event
+            );
+          }
+        }
 
-    //Confirm we have events to push
-    if (dataLayer.length > 0) {
-        dataLayer.forEach(function(element) {
-          //Check if the prevent_recursive merge array is present and push nulls if any are found in events
-            if (list && list.length > 0) {
-                let objects = list.filter(key => typeof(element[key]) === 'object');
-                log(objects);
-                let pushobject = {};
-                if (objects.length > 0) {
-                    objects.forEach(object => pushobject[object] = null);
-                    dataLayerPush(pushobject);
-                    log('Preventing recursive merge by pushing null object(s): ' + objects + ' before event: ' + element.event);
-                }
-            }
-            //Clear the event ID so that the events are treated as new events
-            element["gtm.uniqueEventId"] = undefined;
-            //Set pushType to artificial to allow for easier debugging
-            element.pushType = "artificial";
-            log('Repeat DataLayer Events Tag - Repushing event: ' + element.event);
-            //Repush the event
-            dataLayerPush(element);
-        });
+        //Clear the event ID so that the events are treated as new events
+        element["gtm.uniqueEventId"] = undefined;
+        //Set pushType to artificial to allow for easier debugging
+        element.pushType = "artificial";
+      };
 
-    }
+  //Confirm we have events to push
+  if (dataLayer.length > 0) {
+    dataLayer.forEach(function (element) {
+
+      const pushData = function (element) {
+        preparePush(element);
+        log("Repeat DataLayer Events Tag - Repushing event: " + element.event);
+        dataLayerPush(element);
+      };
+
+      //Repush the event
+      callLater(() => pushData(element));
+    });
+    callLater(() =>
+      dataLayerPush({
+        backTrack_fired: true,
+        pushType: undefined,
+      })
+    );
+  }
 } else {
-  log('backTrack aborted - artificial events already detected');
+  log("backTrack aborted - tag has already fired");
 }
 // Call data.gtmOnSuccess when the tag is finished.
 data.gtmOnSuccess();
@@ -273,6 +297,13 @@ ___WEB_PERMISSIONS___
       },
       "param": [
         {
+          "key": "allowedKeys",
+          "value": {
+            "type": 1,
+            "string": "specific"
+          }
+        },
+        {
           "key": "keyPatterns",
           "value": {
             "type": 2,
@@ -284,6 +315,10 @@ ___WEB_PERMISSIONS___
               {
                 "type": 1,
                 "string": "pushType"
+              },
+              {
+                "type": 1,
+                "string": "backTrack_fired"
               }
             ]
           }
