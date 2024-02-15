@@ -55,7 +55,7 @@ ___TEMPLATE_PARAMETERS___
         "subParams": [
           {
             "type": "TEXT",
-            "name": "list",
+            "name": "comma_separated_recursive_merge",
             "displayName": "Comma separated list of objects to prevent recursive merge for",
             "simpleValueType": true,
             "textAsList": false,
@@ -80,11 +80,12 @@ const dataLayerPush = createQueue('dataLayer');
 const makeString = require('makeString');
 const copyFromDataLayer = require('copyFromDataLayer');
 const callLater = require('callLater');
+const setInWindow = require('setInWindow');
 
 log('data =', data);
 
 //Check if backTrack has already fired/is firing by looking for artificial/natural pushType
-let alreadyFired = copyFromDataLayer('backTrack_fired');
+let alreadyFired = copyFromWindow('repushdataLayer');
 
 if (!alreadyFired) {
 
@@ -108,30 +109,36 @@ if (!alreadyFired) {
 
     //If prevent_recursive_merge is active - convert the provided string into an array
     if (data.prevent_recursive_merge === 'specific') {
-        var list = data.list.split(',');
+        var recursive_merge_list = data.comma_separated_recursive_merge.split(',');
     }
-
-    //Confirm we have events to push
-    if (dataLayer.length > 0) {
-        dataLayer.forEach(function(element) {
-          //Check if the prevent_recursive merge array is present and push nulls if any are found in events
-            if (list && list.length > 0) {
-                let objects = list.filter(key => typeof(element[key]) === 'object');
+  
+     //Check if the prevent_recursive merge array is present and push nulls if any are found in events
+    var recursive_merge = function(current_element){
+          if (recursive_merge && recursive_merge_list && recursive_merge_list.length > 0) {
+                let objects = recursive_merge_list.filter(key => typeof(current_element[key]) === 'object');
                 log(objects);
                 let pushobject = {};
                 if (objects.length > 0) {
                     objects.forEach(object => pushobject[object] = null);
-                    dataLayerPush(pushobject);
-                    log('Preventing recursive merge by pushing null object(s): ' + objects + ' before event: ' + element.event);
+                    return pushobject;
                 }
             }
+            };
+
+    //Confirm we have events to push
+    if (dataLayer.length > 0) {
+        dataLayer.forEach(function(element) {
             //Clear the event ID so that the events are treated as new events
             element["gtm.uniqueEventId"] = undefined;
             //Set pushType to artificial to allow for easier debugging
             element.pushType = "artificial";
             log('Repeat DataLayer Events Tag - Repushing event: ' + element.event);
             //Repush the event
-            callLater(()=>dataLayerPush(element));
+            callLater(()=>
+                      recursive_merge(element) && dataLayerPush(recursive_merge(element))
+                      );
+            callLater(()=>
+                      dataLayerPush(element));
         });
             callLater(()=>dataLayerPush({
               backTrack_fired : true,
@@ -139,6 +146,7 @@ if (!alreadyFired) {
 
 
     }
+    setInWindow('repushdataLayer', true, false);
 } else {
   log('backTrack aborted - tag has already fired');
 }
@@ -332,14 +340,12 @@ scenarios:
     ];
 
     mock('copyFromWindow', key => {
+      if (key === 'dataLayer'){
       return dataLayer;
-    });
-
-    mock('copyFromDataLayer', key => {
-      if(key === 'backTrack_fired') {
+      }
+      if(key === 'repushdataLayer') {
         return false;
       }
-      return 1;
     });
 
     mock("callLater", (callback) => {
@@ -353,13 +359,6 @@ scenarios:
     assertApi('gtmOnSuccess').wasCalled();
 - name: dataLayer has pushes before consent
   code: |-
-    mock('copyFromDataLayer', key => {
-      if(key === 'backTrack_fired') {
-        return false;
-      }
-      return 30;
-    });
-
     let dataLayer = [
         {
             "event": "page_view",
@@ -388,6 +387,22 @@ scenarios:
         }
     ];
 
+    mock('copyFromWindow', key => {
+      if(key === 'repushdataLayer') {
+        return false;
+      }
+       if(key === 'dataLayer') {
+        return dataLayer;
+      }
+    });
+
+    mock('copyFromDataLayer', key => {
+      if (key === 'gtm.uniqueEventId'){
+        return 30;
+      }
+    });
+
+
     let pushedEvents = [];
 
     // Mocking the createQueue function to capture pushed events
@@ -396,10 +411,6 @@ scenarios:
         log(event);
         pushedEvents.push(event);
       };
-    });
-
-    mock('copyFromWindow', key => {
-      return dataLayer;
     });
 
     mock("callLater", (callback) => {
