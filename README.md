@@ -15,13 +15,16 @@ backTrack is a template attempting to solve this issue and make handling event-t
 1. Install the template from the [community gallery](https://tagmanager.google.com/gallery/#/owners/mohrstade/templates/backTrack)
 2. Create a tag using the template.
 3. Set the tag to fire once per page.
-Add a trigger to fire the tag on the first event with consent.
-4. [Optional] Configure the REGEX for which events you want to re-push. By default GTM events and the most common consent events are excluded from being re-pushed. This is very important to prevent the consent state from being altered. To be explicit, change the REGEX to match the specific events you want to re-push.
-5. [Optional] Configure the prevent recursive merge feature by changing the setting to ‘On’ and adding any objects that should be cleared between events (for example ecommerce).
+4. Add a trigger to fire the tag on the first event with consent.
+5. [Optional] Configure the REGEX for which events you want to re-push. By default GTM events and the most common consent events are excluded from being re-pushed. This is very important to prevent the consent state from being altered. To be explicit, change the REGEX to match the specific events you want to re-push.
+6. [Optional] Configure the prevent recursive merge feature by changing the setting to ‘On’ and adding any objects that should be cleared between events (for example ecommerce).
 
 ### Google Consent - Advanced Mode
 Google Consent Mode (Advanced) has its own functionality to automatically fire events again after consent is granted (via the update command). backTrack will function for all tags as it is repushing events.
-To prevent duplicate events being sent, a blocking trigger needs to be added to all Google Tags when Consent Mode (Advanced is being used). The blocking trigger should fire on all events with pushType 'Artificial’.
+To prevent duplicate events being sent, a blocking trigger needs to be added to all Google Tags when Consent Mode (Advanced is being used). The **blocking trigger** should fire on all events with pushType 'Artificial’.
+
+<img width="902" alt="Screenshot 2024-05-06 at 20 03 19" src="https://github.com/mohrstade/backTrack/assets/125863377/0c223f07-5970-4553-b6c9-15553d418e56">
+
 
 ### backTrack_fired
 After the tag has finished re-pushing all events, it will set a dataLayer variable `backTrack_fired` with the boolean value `true` to indicate that the tag has already fired.
