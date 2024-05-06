@@ -1,7 +1,7 @@
 # backTrack
 Repush dataLayer events that occurred before consent loaded.
 
-## Why use backTrack
+## Why use backTrack?
 
 dataLayer events allow you to fire your tags at the right moment with the correct data. The timing becomes more complex when consent becomes involved.
 If your dataLayer push arrives before the consent management platform and Google Consent Mode (Basic) have initialised - functionality is needed to delay firing the respective tag.
@@ -31,10 +31,21 @@ backTrack is a template attempting to solve this issue and make handling event-t
 
 ### Google Consent - Advanced Mode
 Google Consent Mode (Advanced) has its own functionality to automatically fire events again after consent is granted (via the update command). backTrack will function for all tags as it is repushing events.
-To prevent duplicate events being sent, a blocking trigger needs to be added to all Google Tags when Consent Mode (Advanced is being used). The **blocking trigger** should fire on all events with pushType 'Artificial’.
+To prevent duplicate events being sent, a blocking trigger needs to be added to all Google Tags when Consent Mode (Advanced only) is being used. The **blocking trigger** should fire on all events with pushType 'Artificial’.
 
 <img width="902" alt="Screenshot 2024-05-06 at 20 03 19" src="https://github.com/mohrstade/backTrack/assets/125863377/0c223f07-5970-4553-b6c9-15553d418e56">
+
+After the tag has finished re-pushing all events, it will set a dataLayer variable `backTrack_fired` with the boolean value `true` to indicate that the tag has already fired.
+
+
+### Safety Features
+The template has in-built functionality to prevent multiple firings, as this could cause infinite loops. It is still worth explicity setting the tag to fire once per page.
 
 
 ### backTrack_fired
 After the tag has finished re-pushing all events, it will set a dataLayer variable `backTrack_fired` with the boolean value `true` to indicate that the tag has already fired.
+
+
+### A Note on Privacy
+The aim of this template is not to track events that occurred before the user provided consent, rather to make handling the timing easier. A consent decision should be enforced by the banner before the user interacts with the page.
+If you have a single page application ensure that the entire page is reloaded when consent is changed - as this is needed to unload analytics/marketing libraries.
